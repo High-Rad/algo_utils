@@ -1,14 +1,13 @@
 import json
 import os
 from glob import glob
-from typing import Tuple, List, Collection, Callable, Optional, Dict, Union, Iterator
-
+from typing import Tuple, List, Collection, Callable, Optional, Dict, Union
 import jsonschema
 from skimage.measure import centroid
 import nibabel
 import numpy as np
 import pandas as pd
-from nibabel import load, as_closest_canonical, affines, save, Nifti1Image
+from nibabel import load, as_closest_canonical, affines
 from scipy.ndimage import _ni_support
 from scipy.ndimage.morphology import distance_transform_edt, binary_erosion, \
     generate_binary_structure
@@ -16,14 +15,11 @@ from scipy import ndimage
 from skimage.measure import label
 from skimage.morphology import disk
 from scipy.ndimage import binary_fill_holes
-from skimage.morphology import remove_small_objects, ball
-from tqdm import tqdm
+from skimage.morphology import remove_small_objects
 from tqdm.contrib.concurrent import process_map
 from xlsxwriter.utility import xl_col_to_name
 from time import time, gmtime
 from medpy.metric import hd, assd
-from multiprocessing.pool import Pool
-from functools import partial
 from skimage.measure import regionprops
 import networkx as nx
 
@@ -2078,4 +2074,3 @@ def load_and_validate_jsonschema(json_fn: str, json_format: dict) -> dict:
         raise jsonschema.exceptions.ValidationError(
             f"Validation error in JSON file '{json_fn}': {e.message}"
         ) from e
-
