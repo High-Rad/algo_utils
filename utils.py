@@ -9,8 +9,7 @@ import numpy as np
 import pandas as pd
 from nibabel import load, as_closest_canonical, affines
 from scipy.ndimage import _ni_support
-from scipy.ndimage.morphology import distance_transform_edt, binary_erosion, \
-    generate_binary_structure
+from scipy.ndimage import distance_transform_edt, binary_erosion, generate_binary_structure
 from scipy import ndimage
 from skimage.measure import label
 from skimage.morphology import disk
