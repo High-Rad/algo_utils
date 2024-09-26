@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from nibabel import load, as_closest_canonical, affines
 from scipy.ndimage import _ni_support
-from scipy.ndimage import distance_transform_edt, binary_erosion, generate_binary_structure
+from scipy.ndimage import distance_transform_edt,  binary_erosion, generate_binary_structure
 from scipy import ndimage
 from skimage.measure import label
 from skimage.morphology import disk
@@ -22,7 +22,7 @@ from medpy.metric import hd, assd
 from skimage.measure import regionprops
 import networkx as nx
 
-
+# todo - measurements
 def _surface_distances(result, reference, voxelspacing=None, connectivity=1):
     """
     This function is copied from medpy.metric version 0.3.0
@@ -59,13 +59,13 @@ def _surface_distances(result, reference, voxelspacing=None, connectivity=1):
 
     return sds
 
-
+# todo - segmentation_features
 def crop_to_relevant_joint_bbox(result, reference):
     relevant_joint_case = np.logical_or(result, reference)
     slc = get_slice_of_cropped_relevant_bbox(relevant_joint_case)
     return result[slc], reference[slc]
 
-
+# todo - segmentation_features
 def get_slice_of_cropped_relevant_bbox(case: np.ndarray, margin=0):
     assert isinstance(margin, int) and margin >= 0
 
@@ -92,7 +92,7 @@ def get_slice_of_cropped_relevant_bbox(case: np.ndarray, margin=0):
 
     return slc
 
-
+# todo - measurements
 def min_distance(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
     """
     The concept is taken from medpy.metric.hd version 0.3.0
@@ -144,7 +144,7 @@ def min_distance(result, reference, voxelspacing=None, connectivity: int = 1, cr
         md = _surface_distances(result, reference, voxelspacing, connectivity).min()
     return md
 
-
+# todo - measurements
 def Hausdorff(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
     """
     The concept is taken from medpy.metric.hd
@@ -191,7 +191,7 @@ def Hausdorff(result, reference, voxelspacing=None, connectivity: int = 1, crop_
         result, reference = crop_to_relevant_joint_bbox(result, reference)
     return hd(result, reference, voxelspacing, connectivity)
 
-
+# todo - measurements
 def ASSD(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
     """
     The concept is taken from medpy.metric.assd
@@ -247,7 +247,7 @@ def ASSD(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_re
         result, reference = crop_to_relevant_joint_bbox(result, reference)
     return assd(result, reference, voxelspacing, connectivity)
 
-
+# todo - measurements
 def assd_and_hd(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
     """
     The concept is taken from medpy.metric.assd and medpy.metric.hd
@@ -303,7 +303,7 @@ def assd_and_hd(result, reference, voxelspacing=None, connectivity: int = 1, cro
 
     return assd_res, hd_res
 
-
+# todo - measurements
 def assd_hd_and_min_distance(result, reference, voxelspacing=None, connectivity: int = 1,
                              crop_to_relevant_scope: bool = True):
     """
@@ -364,7 +364,7 @@ def assd_hd_and_min_distance(result, reference, voxelspacing=None, connectivity:
 
     return assd_res, hd_res, md_res
 
-
+# todo - measurements
 def dice(gt_seg, prediction_seg):
     """
     compute dice coefficient
@@ -382,7 +382,7 @@ def dice(gt_seg, prediction_seg):
         return 1
     return 2. * intersection.sum() / denominator_of_res
 
-
+# todo - measurements
 def tp_dice(gt_seg: np.ndarray, prediction_seg: np.ndarray, nan_if_no_tp: bool = False) -> float:
     """
     Computing Dice Coefficient after filtering FN and FP connected components.
@@ -414,13 +414,13 @@ def tp_dice(gt_seg: np.ndarray, prediction_seg: np.ndarray, nan_if_no_tp: bool =
 
     return dice(np.isin(gt_seg, gt_tp_ts), np.isin(prediction_seg, pred_tp_ts))
 
-
+# todo - measurements
 def approximate_diameter(volume):
     r = ((3 * volume) / (4 * np.pi)) ** (1 / 3)
     diameter = 2 * r
     return diameter
 
-
+# todo - segmentation_processing
 def get_connected_components(Map, connectivity=None, min_cc_size: int = 11):
     """
     Remove Small connected component
@@ -433,14 +433,14 @@ def get_connected_components(Map, connectivity=None, min_cc_size: int = 11):
     return_value = label(label_img)
     return return_value
 
-
+# todo - segmentation_processing
 def getLargestCC(segmentation, connectivity=1):
     labels = label(segmentation, connectivity=connectivity)
     assert (labels.max() != 0)  # assume at least 1 CC
     largestCC = labels == np.argmax(np.bincount(labels.flat)[1:]) + 1
     return largestCC.astype(segmentation.dtype)
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def load_nifti_data(nifti_file_name: str):
     """
     Loading data from a nifti file.
@@ -461,12 +461,12 @@ def load_nifti_data(nifti_file_name: str):
 
     return data, nifti_file
 
-
+# todo - segmentation_processing
 def get_liver_border(liver_case: np.ndarray, selem_radius: int = 1) -> np.ndarray:
     return np.logical_xor(liver_case, binary_erosion(liver_case, np.expand_dims(disk(selem_radius), 2))).astype(
         liver_case.dtype)
 
-
+# todo - segmentation_processing
 def expand_labels(label_image, distance=1, voxelspacing=None, distance_cache=None, return_distance_cache=False):
     """
 
@@ -579,7 +579,7 @@ def expand_labels(label_image, distance=1, voxelspacing=None, distance_cache=Non
         return labels_out, (distances, nearest_label_coords)
     return labels_out
 
-
+# todo - segmentation_processing
 def expand_per_label(label_image: np.ndarray, dists_to_expand: Union[float, np.ndarray] = 1,
                      max_relevant_distances: Union[float, np.ndarray] = None,
                      voxelspacing=None, distance_cache=None, return_distance_cache=False):
@@ -625,13 +625,13 @@ def expand_per_label(label_image: np.ndarray, dists_to_expand: Union[float, np.n
         return labels_out, distances
     return labels_out
 
-
+# todo - segmentation_features
 def distance_transform_edt_for_certain_label(label_and_max_relevant_dist, label_image, voxelspacing, return_indices):
     label, max_relevant_dist = label_and_max_relevant_dist
     return fast_distance_transform_edt(label_image == label, voxelspacing, max_relevant_dist,
                                        return_indices=return_indices)
 
-
+# todo - segmentation_features
 def fast_distance_transform_edt(input, voxelspacing, max_relevant_dist, return_indices):
     input_shape = input.shape
 
@@ -693,174 +693,7 @@ def fast_distance_transform_edt(input, voxelspacing, max_relevant_dist, return_i
 
     return extended_distances
 
-
-# def shrink_labels(label_image, distance=1, voxelspacing=None, distance_cache=None, return_distance_cache=False,
-#                   is_the_label_image_binary=False):
-#     """
-#
-#     This function is based on the function expand_labels in skimage.segmentation version 0.18.3, with changes made to
-#     be a shrink version of it.
-#
-#     See decumentation of the funcion expand_labels here.
-#
-#     Shrink labels in label image by ``distance`` pixels.
-#     Given a label image, ``shrink_labels`` decreas label regions (connected components)
-#     inwards by up to ``distance`` pixels.
-#
-#     Parameters
-#     ----------
-#     label_image : ndarray of dtype int
-#         label image
-#     distance : float
-#         Euclidean distance in pixels by which to grow the labels. Default is one.
-#     voxelspacing : float or sequence of floats, optional
-#         The voxelspacing in a distance unit i.e. spacing of elements
-#         along each dimension. If a sequence, must be of length equal to
-#         the input rank; if a single number, this is used for all axes. If
-#         not specified, a grid spacing of unity is implied.
-#     distance_cache : ndarray of dtype float, optional
-#         The distances calculated earlier to use in the current calculation
-#         This is used, for example, if you want to run this function several times while changing only
-#         the ``distance`` parameter. The calculation will be more optimized.
-#     return_distance_cache : bool, optional
-#         If this is set to True, the distances cache will be returned too. By default it's False.
-#         See distance_cache documentation.
-#     is_the_label_image_binary : bool, optional
-#         If this is set to True, the function assumes that the given label_image is consisted of only 0,1 labels, and
-#         calculates some calculations faster.
-#     Returns
-#     -------
-#     reduced_labels : ndarray of dtype int
-#         Labeled array, where all connected regions have been reduced
-#     distance_cache : ndarray of dtype float
-#         This will be returned only if return_distance_cache is set to True.
-#         See distance_cache documentation.
-#     """
-#
-#     if distance_cache is None:
-#         # extract borders
-#         morph_func = binary_erosion if is_the_label_image_binary else erosion
-#         # borders = np.logical_and(label_image, np.logical_not(morph_func(label_image, ball(1)))).astype(label_image.dtype)
-#         borders = np.logical_and(label_image, np.logical_not(morph_func(label_image, np.array(
-#             [[0, 1, 0], [1, 1, 1], [0, 1, 0]]).reshape([3, 3, 1]).astype(np.bool_)))).astype(label_image.dtype)
-#         borders = label_image * borders
-#
-#         distances = distance_transform_edt(borders == 0, sampling=voxelspacing)
-#     else:
-#         distances = distance_cache
-#     labels_out = np.zeros_like(label_image)
-#     dilate_mask = distances >= distance
-#
-#     labels_out[dilate_mask] = 1
-#     labels_out *= label_image
-#     if return_distance_cache:
-#         return labels_out, distances
-#     return labels_out
-
-
-# def find_pairs(baseline_moved_labeled, followup_labeled, reverse=False, voxelspacing=None, max_dilate_param=5,
-#                return_iteration_indicator=False):
-#     list_of_pairs = []
-#     # Hyper-parameter for sensitivity of the matching (5 means that 10 pixels between the scans will be same)
-#     for dilate in range(max_dilate_param):
-#
-#         # find intersection areas between baseline and followup
-#         matched = np.logical_and((baseline_moved_labeled > 0), followup_labeled > 0)
-#
-#         # iterate over tumors in baseline that intersect tumors in followup
-#         for i in np.unique((matched * baseline_moved_labeled).flatten()):
-#             if i == 0:
-#                 continue
-#
-#             # find intersection between current BL tumor and FU tumors
-#             overlap = ((baseline_moved_labeled == i) * followup_labeled)
-#
-#             # get the labels of the FU tumors that intersect the current BL tumor
-#             follow_up_num = np.unique(overlap.flatten())
-#
-#             # in case there is more than 1 FU tumor that intersect the current BL tumor
-#             if follow_up_num.shape[0] > 2:
-#                 sum = 0
-#                 # iterate over the FU tumors that intersect the current BL tumor
-#                 for j in follow_up_num[1:]:
-#                     # in case the current FU tumor has the biggest found overlap with current BL tumor,
-#                     # till this iteration
-#                     if sum < (overlap == j).sum():
-#                         sum = (overlap == j).sum()
-#                         biggest = j
-#
-#                     # in case the overlap of the current FU tumor with the current BL tumor
-#                     # is grader than 10% of the BL or FU tumor
-#                     elif ((overlap == j).sum() / (followup_labeled == j).sum()) > 0.1 or (
-#                             (overlap == j).sum() / (baseline_moved_labeled == i).sum()) > 0.1:
-#                         # a match was found
-#                         if reverse:
-#                             if return_iteration_indicator:
-#                                 list_of_pairs.append((dilate + 1, (j, i)))
-#                             else:
-#                                 list_of_pairs.append((j, i))
-#                         else:
-#                             if return_iteration_indicator:
-#                                 list_of_pairs.append((dilate + 1, (i, j)))
-#                             else:
-#                                 list_of_pairs.append((i, j))
-#                         # zero the current FU tumor and the current BL tumor
-#                         baseline_moved_labeled[baseline_moved_labeled == i] = 0
-#                         followup_labeled[followup_labeled == j] = 0
-#                 # marking the FU tumor with the biggest overlap with the BL tumor as a found match
-#                 if reverse:
-#                     if return_iteration_indicator:
-#                         list_of_pairs.append((dilate + 1, (biggest, i)))
-#                     else:
-#                         list_of_pairs.append((biggest, i))
-#                 else:
-#                     if return_iteration_indicator:
-#                         list_of_pairs.append((dilate + 1, (i, biggest)))
-#                     else:
-#                         list_of_pairs.append((i, biggest))
-#
-#                 # zero the current BL tumor and the FU tumor that has jost been
-#                 # marked as a match with the current BL tumor
-#                 baseline_moved_labeled[baseline_moved_labeled == i] = 0
-#                 followup_labeled[followup_labeled == biggest] = 0
-#
-#             # in case there is only 1 FU tumor that intersect the current BL tumor
-#             elif follow_up_num.shape[0] > 1:
-#                 # a match was found
-#                 if reverse:
-#                     if return_iteration_indicator:
-#                         list_of_pairs.append((dilate + 1, (follow_up_num[-1], i)))
-#                     else:
-#                         list_of_pairs.append((follow_up_num[-1], i))
-#                 else:
-#                     if return_iteration_indicator:
-#                         list_of_pairs.append((dilate + 1, (i, follow_up_num[-1])))
-#                     else:
-#                         list_of_pairs.append((i, follow_up_num[-1]))
-#                 # zero the current BL tumor and the FU tumor that intersects it
-#                 baseline_moved_labeled[baseline_moved_labeled == i] = 0
-#                 followup_labeled[followup_labeled == follow_up_num[-1]] = 0
-#
-#         # dilate the BL and FU tumors cases
-#         # if dilate % 5 == 3:
-#         #     plus = ndimage.generate_binary_structure(3, 1)
-#         #     plus[1, 1, 0] = False
-#         #     plus[1, 1, 2] = False
-#         #     baseline_moved_labeled = dilation(baseline_moved_labeled, selem=ndimage.generate_binary_structure(3, 1))
-#         #     followup_labeled = dilation(followup_labeled, selem=plus)
-#         # else:
-#         #     plus = ndimage.generate_binary_structure(3, 1)
-#         #     plus[1, 1, 0] = False
-#         #     plus[1, 1, 2] = False
-#         #     baseline_moved_labeled = dilation(baseline_moved_labeled, selem=plus)
-#         #     followup_labeled = dilation(followup_labeled, selem=plus)
-#
-#         # dilation without overlap and considering resolution
-#         baseline_moved_labeled = expand_labels(baseline_moved_labeled, distance=1, voxelspacing=voxelspacing)
-#         followup_labeled = expand_labels(followup_labeled, distance=1, voxelspacing=voxelspacing)
-#
-#     return (list_of_pairs)
-
+# todo - matching
 def find_pairs(baseline_moved_labeled, followup_labeled, reverse=False, voxelspacing=None, max_dilate_param=5,
                return_iteration_and_reverse_indicator=False):
     working_baseline_moved_labeled = baseline_moved_labeled
@@ -976,7 +809,7 @@ def find_pairs(baseline_moved_labeled, followup_labeled, reverse=False, voxelspa
 
     return (list_of_pairs)
 
-
+# todo - matching
 def match_2_cases(BL_tumors_labels, FU_tumors_labels, voxelspacing=None, max_dilate_param=5,
                   return_iteration_and_reverse_indicator=False):
     """
@@ -1009,7 +842,7 @@ def match_2_cases(BL_tumors_labels, FU_tumors_labels, voxelspacing=None, max_dil
 
     return resulting_list
 
-
+# todo - matching
 def match_2_cases_v2(baseline_moved_labeled, followup_labeled, voxelspacing=None, max_dilate_param=5,
                      return_iteration_indicator=False):
     """
@@ -1104,7 +937,7 @@ def match_2_cases_v2(baseline_moved_labeled, followup_labeled, voxelspacing=None
         return [(p[2], (p[0], p[1])) for p in pairs]
     return [tuple(p) for p in pairs]
 
-
+# todo - matching
 def match_2_cases_v3(baseline_moved_labeled, followup_labeled, voxelspacing=None, max_dilate_param=5,
                      return_iteration_indicator=False):
     """
@@ -1197,7 +1030,7 @@ def match_2_cases_v3(baseline_moved_labeled, followup_labeled, voxelspacing=None
         return [(p[2], (p[0], p[1])) for p in pairs]
     return [tuple(p) for p in pairs]
 
-
+# todo - matching
 def match_2_cases_v4(baseline_moved_labeled, followup_labeled, voxelspacing=None, max_dilate_param=5,
                      return_iteration_indicator=False):
     """
@@ -1368,7 +1201,7 @@ def match_2_cases_v4(baseline_moved_labeled, followup_labeled, voxelspacing=None
         return [(p[2], (p[0], p[1])) for p in pairs]
     return [tuple(p) for p in pairs]
 
-
+# todo - matching
 def match_2_cases_v5(baseline_moved_labeled, followup_labeled, voxelspacing=None, max_dilate_param=5,
                      return_iteration_indicator=False):
     """
@@ -1455,7 +1288,7 @@ def match_2_cases_v5(baseline_moved_labeled, followup_labeled, voxelspacing=None
         return [(p[2], (p[0], p[1])) for p in pairs]
     return [tuple(p) for p in pairs]
 
-
+# todo - segmentation_processing
 def pre_process_segmentation(seg, remove_small_obs=True, min_obj_size: int = 20):
     # fill holes over 2D slices
     res = binary_fill_holes(seg, np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]).reshape([3, 3, 1]).astype(np.bool_))
@@ -1466,7 +1299,7 @@ def pre_process_segmentation(seg, remove_small_obs=True, min_obj_size: int = 20)
 
     return res.astype(seg.dtype)
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def replace_in_file_name(file_name, old_part, new_part, dir_file_name=False, dst_file_exist=True):
     if old_part not in file_name:
         raise Exception(f'The following file/dir doesn\'t contain the part "{old_part}": {file_name}')
@@ -1476,7 +1309,7 @@ def replace_in_file_name(file_name, old_part, new_part, dir_file_name=False, dst
         raise Exception(f'It looks like the following file/dir doesn\'t exist: {new_file_name}')
     return new_file_name
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def write_to_excel(df, writer, columns_order, column_name_as_index, sheet_name='Sheet1',
                    f1_scores: Optional[Dict[str, Tuple[str, str]]] = None):
     df = df.set_index(column_name_as_index)
@@ -1581,12 +1414,12 @@ def write_to_excel(df, writer, columns_order, column_name_as_index, sheet_name='
         # set the column length
         worksheet.set_column(i + 1, i + 1, column_len, cell_format)
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def calculate_runtime(t):
     t2 = gmtime(time() - t)
     return f'{t2.tm_hour:02.0f}:{t2.tm_min:02.0f}:{t2.tm_sec:02.0f}'
 
-
+# todo - segmentation_features
 def bbox2_3D(img):
     x = np.any(img, axis=(1, 2))
     y = np.any(img, axis=(0, 2))
@@ -1598,7 +1431,7 @@ def bbox2_3D(img):
 
     return xmin, xmax, ymin, ymax, zmin, zmax
 
-
+# todo - segmentation_features
 def bbox2_2D(img):
     x = np.any(img, axis=1)
     y = np.any(img, axis=0)
@@ -1608,7 +1441,7 @@ def bbox2_2D(img):
 
     return xmin, xmax, ymin, ymax
 
-
+# todo - segmentation_features
 def get_liver_segments(liver_case: np.ndarray) -> np.ndarray:
     xmin, xmax, ymin, ymax, _, _ = bbox2_3D(liver_case)
     res = np.zeros_like(liver_case)
@@ -1618,18 +1451,18 @@ def get_liver_segments(liver_case: np.ndarray) -> np.ndarray:
     res *= liver_case
     return res
 
-
+# todo - segmentation_features
 def get_center_of_mass(img: np.ndarray) -> Tuple[int, int, int]:
     xmin, xmax, ymin, ymax, zmin, zmax = bbox2_3D(img)
     return (xmin + xmax) // 2, (ymin + ymax) // 2, (zmin + zmax) // 2
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def print_full_df(x):
     pd.set_option('display.max_rows', len(x))
     print(x)
     pd.reset_option('display.max_rows')
 
-
+# todo - segmentation_features
 def approximate_sphere(relevant_points_in_real_space: np.ndarray, relevant_points_in_voxel_space: np.ndarray,
                        center_of_mass_in_voxel_space: Tuple[int, int, int], approximate_radius_in_real_space: float,
                        affine_matrix: np.ndarray):
@@ -1641,25 +1474,25 @@ def approximate_sphere(relevant_points_in_real_space: np.ndarray, relevant_point
     sphere[final_points_in_voxel_space[:, 0], final_points_in_voxel_space[:, 1], final_points_in_voxel_space[:, 2]] = 1
     return sphere
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def is_a_scan(case: np.ndarray) -> bool:
     if np.unique(case).size <= 2:
         return False
     return True
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def is_a_mask(case: np.ndarray) -> bool:
     if np.any((case != 0) & (case != 1)):
         return False
     return True
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def is_a_labeled_mask(case: np.ndarray, relevant_labels: Collection) -> bool:
     if np.all(np.isin(case, relevant_labels)):
         return True
     return False
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def symlink_for_inner_files_in_a_dir(src: str, dst: str, map_file_basename: Callable = None,
                                      filter_file_basename: Callable = None):
     """makes a symbolic link of files in a directory"""
@@ -1680,14 +1513,14 @@ def symlink_for_inner_files_in_a_dir(src: str, dst: str, map_file_basename: Call
             if filter_file_basename(file_basename):
                 os.symlink(file, f'{dst}/{map_file_basename(file_basename)}')
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def scans_sort_key(name, full_path_is_given=False):
     if full_path_is_given:
         name = os.path.basename(name)
     split = name.split('_')
     return '_'.join(c for c in split if not c.isdigit()), int(split[-1]), int(split[-2]), int(split[-3])
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def pairs_sort_key(name, full_path_is_given=False):
     if full_path_is_given:
         name = os.path.basename(name)
@@ -1695,13 +1528,13 @@ def pairs_sort_key(name, full_path_is_given=False):
     bl_name, fu_name = name.split('_FU_')
     return (*scans_sort_key(bl_name), *scans_sort_key(fu_name))
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def sort_dataframe_by_key(dataframe: pd.DataFrame, column: str, key: Callable) -> pd.DataFrame:
     """ Sort a dataframe from a column using the key """
     sort_ixs = sorted(np.arange(len(dataframe)), key=lambda i: key(dataframe.iloc[i][column]))
     return pd.DataFrame(columns=list(dataframe), data=dataframe.iloc[sort_ixs].values)
 
-
+# todo - segmentation_features
 def get_minimum_distance_between_CCs(mask: np.ndarray, voxel_to_real_space_trans: Optional[np.ndarray] = None,
                                      max_points_per_CC: Optional[int] = None, seed: Optional[int] = None) -> float:
     """
@@ -1737,7 +1570,7 @@ def get_minimum_distance_between_CCs(mask: np.ndarray, voxel_to_real_space_trans
 
     return np.inf
 
-
+# todo - segmentation_features
 def get_tumors_intersections(gt: np.ndarray, pred: np.ndarray, unique_intersections_only: bool = False) -> Dict[
     int, List[int]]:
     """
@@ -1778,7 +1611,7 @@ def get_tumors_intersections(gt: np.ndarray, pred: np.ndarray, unique_intersecti
 
 CC = Tuple[List[int], List[int]]
 
-
+# todo - segmentation_features
 def get_CCs_of_tumors_intersections(gt: np.ndarray, pred: np.ndarray) -> List[CC]:
     """
     Get Connected Components (CC) intersections of tumors between GT and PRED.
@@ -1831,7 +1664,7 @@ def get_CCs_of_tumors_intersections(gt: np.ndarray, pred: np.ndarray) -> List[CC
 
     return CCs
 
-
+# todo - segmentation_features
 def get_CCs_of_longitudinal_tumors_intersection(tumors_masks: List[np.ndarray]):
     """
     Get Connected Components (CC) intersections of tumors between multiple tumors masks arrays.
@@ -1889,7 +1722,7 @@ def get_CCs_of_longitudinal_tumors_intersection(tumors_masks: List[np.ndarray]):
 
     return CCs
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def __get_mean_and_std(scan: str):
     try:
         s, _ = load_nifti_data(scan)
@@ -1897,7 +1730,7 @@ def __get_mean_and_std(scan: str):
     except Exception:
         return np.nan, np.nan
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def get_duplicate_scans(scans: List[str], multiprocess: bool = False):
     if multiprocess:
         params = np.round(process_map(__get_mean_and_std, scans), 4)
@@ -1912,7 +1745,7 @@ def get_duplicate_scans(scans: List[str], multiprocess: bool = False):
             duplicates.append(list(np.asarray(scans)[np.where(inds == i)]))
     return duplicates
 
-
+# todo - segmentation_features
 def create_approximated_spheres(labeled_tumors_mask: nibabel.Nifti1Image,
                                 desired_tumors_labels: Optional[List[int]] = None) -> np.ndarray:
     """
@@ -1965,7 +1798,7 @@ def create_approximated_spheres(labeled_tumors_mask: nibabel.Nifti1Image,
 
 IndexExpression3D = Tuple[slice, slice, slice]
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def find_joint_z_slices(im1: np.ndarray, im2: np.ndarray) -> Tuple[IndexExpression3D, IndexExpression3D]:
     """
     Find overlap joint z-slices between two images.
@@ -2031,7 +1864,7 @@ def find_joint_z_slices(im1: np.ndarray, im2: np.ndarray) -> Tuple[IndexExpressi
 
     return s1, s2
 
-
+# todo ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 def load_and_validate_jsonschema(json_fn: str, json_format: dict) -> dict:
     """
     Load and validate a JSON file format using jsonschema.
