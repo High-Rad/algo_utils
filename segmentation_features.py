@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Dict, List
+from typing import Tuple, Optional, Dict, List, Union
 
 from skimage.measure import centroid
 import networkx as nx
@@ -8,8 +8,8 @@ from nibabel import affines
 from scipy.ndimage import distance_transform_edt
 from skimage.measure import regionprops, label
 
-from measurements import approximate_diameter
-from algo_typing import CC
+from algo_typing import CC, IndexExpression3D, VoxelSpacing
+
 
 
 def crop_to_relevant_joint_bbox(result, reference):
@@ -389,7 +389,7 @@ def create_approximated_spheres(labeled_tumors_mask: nibabel.Nifti1Image,
     for t in tumors_to_consider:
         current_t = (tumors == t).astype(tumors.dtype)
         current_t_vol = current_t.sum() * voxel_volume
-        current_t_diameter = approximate_diameter(current_t_vol)
+        current_t_diameter = 2 * ((3 * current_t_vol) / (4 * np.pi)) ** (1 / 3) # diameter = 2 * (3V / 4pi)^(1/3)
         current_t_centroid = centroid(current_t)
         current_sphere = approximate_sphere(relevant_points_in_real_space, relevant_points_in_voxel_space,
                                             current_t_centroid, current_t_diameter / 2, affine_matrix)
