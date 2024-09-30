@@ -1,17 +1,44 @@
+from typing import Optional, Tuple
+
 import numpy as np
 from medpy.metric import hd, assd
 from scipy.ndimage import _ni_support, generate_binary_structure, binary_erosion, distance_transform_edt
 from skimage.measure import label
 
 from segmentation_features import crop_to_relevant_joint_bbox, get_tumors_intersections
+from algo_typing import VoxelSpacing
 
 
-def _surface_distances(result, reference, voxelspacing=None, connectivity=1):
+def _surface_distances(result: np.ndarray, reference: np.ndarray,
+                       voxelspacing: Optional[VoxelSpacing] = None, connectivity: int = 1) -> np.ndarray:
     """
-    This function is copied from medpy.metric version 0.3.0
+    Calculate the surface distances between the surface voxel of binary objects in result and their nearest partner
+    surface voxel of a binary object in reference. The distance unit is the same as for the spacing of elements along
+    each dimension, which is usually given in mm.
 
-    The distances between the surface voxel of binary objects in result and their
-    nearest partner surface voxel of a binary object in reference.
+    Notes
+    -----
+    This function is copied from medpy.metric version 0.3.0.
+
+    Parameters
+    ----------
+    result : np.ndarray
+        Input data containing objects. Can be any type but will be converted into binary: background where 0, object
+        everywhere else.
+    reference : np.ndarray
+        Input data containing objects. Can be any type but will be converted into binary: background where 0, object
+    voxelspacing : Optional[VoxelSpacing]
+        The voxelspacing in a distance unit i.e. spacing of elements along each dimension. If None, a grid spacing of
+        unity is implied.
+    connectivity : int
+        The neighbourhood/connectivity considered when determining the surface of the binary objects.
+
+
+    Returns
+    -------
+    np.ndarray
+        The distances between the surface voxel of binary objects in result and their nearest partner surface voxel of
+        a binary object in reference.
     """
     result = np.atleast_1d(result.astype(np.bool_))
     reference = np.atleast_1d(reference.astype(np.bool_))
@@ -43,7 +70,8 @@ def _surface_distances(result, reference, voxelspacing=None, connectivity=1):
     return sds
 
 
-def min_distance(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
+def min_distance(result: np.ndarray, reference: np.ndarray, voxelspacing: Optional[VoxelSpacing] = None,
+                 connectivity: int = 1, crop_to_relevant_scope: bool = True) -> float:
     """
     The concept is taken from medpy.metric.hd version 0.3.0
 
@@ -95,7 +123,8 @@ def min_distance(result, reference, voxelspacing=None, connectivity: int = 1, cr
     return md
 
 
-def Hausdorff(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
+def Hausdorff(result: np.ndarray, reference: np.ndarray, voxelspacing: Optional[VoxelSpacing] = None,
+              connectivity: int = 1, crop_to_relevant_scope: bool = True) -> float:
     """
     The concept is taken from medpy.metric.hd
 
@@ -142,7 +171,8 @@ def Hausdorff(result, reference, voxelspacing=None, connectivity: int = 1, crop_
     return hd(result, reference, voxelspacing, connectivity)
 
 
-def ASSD(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
+def ASSD(result: np.ndarray, reference: np.ndarray, voxelspacing: Optional[VoxelSpacing] = None,
+         connectivity: int = 1, crop_to_relevant_scope: bool = True) -> float:
     """
     The concept is taken from medpy.metric.assd
 
@@ -198,14 +228,15 @@ def ASSD(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_re
     return assd(result, reference, voxelspacing, connectivity)
 
 
-def assd_and_hd(result, reference, voxelspacing=None, connectivity: int = 1, crop_to_relevant_scope: bool = True):
+def assd_and_hd(result: np.ndarray, reference: np.ndarray, voxelspacing: Optional[VoxelSpacing] = None,
+                connectivity: int = 1, crop_to_relevant_scope: bool = True) -> Tuple[float, float]:
     """
     The concept is taken from medpy.metric.assd and medpy.metric.hd
 
     Average symmetric surface distance and Hausdorff Distance.
 
-    Computes the average symmetric surface distance (ASD) and the (symmetric) Hausdorff Distance (HD) between the binary objects in
-    two images.
+    Computes the average symmetric surface distance (ASSD) and the (symmetric) Hausdorff Distance (HD) between the
+    binary objects in two images.
 
     Parameters
     ----------
@@ -254,8 +285,8 @@ def assd_and_hd(result, reference, voxelspacing=None, connectivity: int = 1, cro
     return assd_res, hd_res
 
 
-def assd_hd_and_min_distance(result, reference, voxelspacing=None, connectivity: int = 1,
-                             crop_to_relevant_scope: bool = True):
+def assd_hd_and_min_distance(result: np.ndarray, reference: np.ndarray, voxelspacing: Optional[VoxelSpacing] = None,
+                             connectivity: int = 1, crop_to_relevant_scope: bool = True) -> Tuple[float, float, float]:
     """
     The concept is taken from medpy.metric.assd and medpy.metric.hd
 
@@ -315,12 +346,30 @@ def assd_hd_and_min_distance(result, reference, voxelspacing=None, connectivity:
     return assd_res, hd_res, md_res
 
 
-def dice(gt_seg, prediction_seg):
+def dice(gt_seg: np.ndarray, prediction_seg: np.ndarray, val_if_both_are_empty: float = 1.0) -> float:
     """
-    compute dice coefficient
-    :param gt_seg:
-    :param prediction_seg:
-    :return: dice coefficient between gt and predictions
+    Calculates the Dice Coefficient between the two given segmentations. The Dice Coefficient is defined as
+    :math:`2 * |A \cap B| / (|A| + |B|)` where :math:`A` is the ground truth segmentation and :math:`B` is the
+    prediction segmentation.
+
+    Notes
+    -----
+    The Dice Coefficient is symmetric and ranges from 0 to 1, where 1 indicates a perfect overlap and 0 indicates no
+    overlap at all. The Dice Coefficient is a real metric. The binary images can therefore be supplied in any order.
+
+    Parameters
+    ----------
+    gt_seg : np.ndarray
+        The ground truth segmentation.
+    prediction_seg : np.ndarray
+        The prediction segmentation to compare with the ground truth segmentation.
+    val_if_both_are_empty : float, default 1.0
+        The value to return if both segmentations are empty. By default, it returns 1.0.
+
+    Returns
+    -------
+    float
+        The Dice Coefficient between the two segmentations.
     """
     seg1 = np.asarray(gt_seg).astype(np.bool_)
     seg2 = np.asarray(prediction_seg).astype(np.bool_)
@@ -329,7 +378,7 @@ def dice(gt_seg, prediction_seg):
     intersection = np.logical_and(seg1, seg2)
     denominator_of_res = seg1.sum() + seg2.sum()
     if denominator_of_res == 0:
-        return 1
+        return val_if_both_are_empty
     return 2. * intersection.sum() / denominator_of_res
 
 
@@ -365,7 +414,21 @@ def tp_dice(gt_seg: np.ndarray, prediction_seg: np.ndarray, nan_if_no_tp: bool =
     return dice(np.isin(gt_seg, gt_tp_ts), np.isin(prediction_seg, pred_tp_ts))
 
 
-def approximate_diameter(volume):
+def approximate_diameter(volume: float) -> float:
+    """
+    Approximate the diameter of a sphere from its volume.
+    The formula is :math:`d = 2 * r` where :math:`r = ((3 * V) / (4 * \pi))^{1/3}`.
+
+    Parameters
+    ----------
+    volume : float
+        The volume of the sphere.
+
+    Returns
+    -------
+    float
+        The diameter of the sphere.
+    """
     r = ((3 * volume) / (4 * np.pi)) ** (1 / 3)
     diameter = 2 * r
     return diameter
