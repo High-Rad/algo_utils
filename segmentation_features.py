@@ -11,15 +11,57 @@ from skimage.measure import regionprops, label
 from algo_typing import CC, IndexExpression3D, VoxelSpacing
 
 
+def crop_to_relevant_joint_bbox(result: np.ndarray, reference: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    This function crops the input mask arrays to the bounding box of their joint relevant region.
 
-def crop_to_relevant_joint_bbox(result, reference):
+    Parameters
+    ----------
+    result : np.ndarray
+        The first input mask array.
+    reference : np.ndarray
+        The second input mask array. It should have the same shape as the first input array.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        The cropped mask arrays.
+
+    Raises
+    ------
+    AssertionError
+        If the input arrays have different shapes.
+    """
+    assert result.shape == reference.shape, f'The input arrays should have the same shape. Got {result.shape} and ' \
+                                            f'{reference.shape}.'
     relevant_joint_case = np.logical_or(result, reference)
     slc = get_slice_of_cropped_relevant_bbox(relevant_joint_case)
     return result[slc], reference[slc]
 
 
-def get_slice_of_cropped_relevant_bbox(case: np.ndarray, margin=0):
-    assert isinstance(margin, int) and margin >= 0
+def get_slice_of_cropped_relevant_bbox(case: np.ndarray, margin=0) -> IndexExpression3D:
+    """
+    This function returns the slice of the input mask array that contains the relevant region.
+
+    Parameters
+    ----------
+    case : np.ndarray
+        The input mask array.
+    margin : int, optional
+        The margin to add to the bounding box. By default it's 0.
+
+    Returns
+    -------
+    IndexExpression3D
+        The slice of the cropped relevant bounding box.
+
+    Raises
+    ------
+    AssertionError
+        If the input margin is negative or not an integer.
+    """
+
+    assert isinstance(margin, int) and margin >= 0, f'The margin should be a non-negative integer. Got {margin}.'
 
     if case.ndim == 3:
         xmin, xmax, ymin, ymax, zmin, zmax = bbox2_3D(case)
@@ -45,13 +87,37 @@ def get_slice_of_cropped_relevant_bbox(case: np.ndarray, margin=0):
     return slc
 
 
-def distance_transform_edt_for_certain_label(label_and_max_relevant_dist, label_image, voxelspacing, return_indices):
-    label, max_relevant_dist = label_and_max_relevant_dist
-    return fast_distance_transform_edt(label_image == label, voxelspacing, max_relevant_dist,
-                                       return_indices=return_indices)
+def fast_distance_transform_edt(input: np.ndarray, voxelspacing: VoxelSpacing, max_relevant_dist: float,
+                                return_indices: bool) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    """
+    This function is a wrapper for the `scipy.ndimage.distance_transform_edt` function. It calculates the distance
+    transform of the input mask array, faster than the original function by cropping the input array to the relevant
+    region during the calculation.
 
+    Parameters
+    ----------
+    input : np.ndarray
+        The input mask array.
+    voxelspacing : VoxelSpacing
+        The voxel spacing of the input mask array.
+    max_relevant_dist : float
+        The maximum relevant distance to consider. If the distance is larger than this value, it will be set to
+        infinity.
+    return_indices : bool
+        Whether to return the indices of the nearest labels or not.
 
-def fast_distance_transform_edt(input, voxelspacing, max_relevant_dist, return_indices):
+    Returns
+    -------
+    Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]
+        The distance transform of the input mask array. If `return_indices` is True, it returns a tuple containing the
+        distance transform and the indices of the nearest labels.
+
+    Raises
+    ------
+    AssertionError
+        If the input mask array is not 2D or 3D.
+    """
+
     input_shape = input.shape
 
     size_to_extend = np.ceil(max_relevant_dist / np.asarray(voxelspacing)).astype(np.int16)
@@ -113,7 +179,53 @@ def fast_distance_transform_edt(input, voxelspacing, max_relevant_dist, return_i
     return extended_distances
 
 
-def bbox2_3D(img):
+def distance_transform_edt_for_certain_label(label_and_max_relevant_dist: Tuple[int, float], label_image: np.ndarray,
+                                             voxelspacing: VoxelSpacing,
+                                             return_indices: bool) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    """
+    This function calculates the distance transform of the input mask array for a certain label.
+
+    Parameters
+    ----------
+    label_and_max_relevant_dist: Tuple[int, float]
+        A tuple containing the label to calculate the distance transform for and the maximum relevant distance to
+        consider. If the distance is larger than this value, it will be set to infinity.
+    label_image: np.ndarray
+        The input labeled mask array.
+    voxelspacing: VoxelSpacing
+        The voxel spacing of the input mask array.
+    return_indices: bool
+        Whether to return the indices of the nearest labels or not.
+
+    Returns
+    -------
+    Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]
+        The distance transform of the input mask array for the given label. If `return_indices` is True, it returns a
+        tuple containing the distance transform and the indices of the nearest labels.
+    """
+    label, max_relevant_dist = label_and_max_relevant_dist
+    return fast_distance_transform_edt(label_image == label, voxelspacing, max_relevant_dist,
+                                       return_indices=return_indices)
+
+
+def bbox2_3D(img: np.ndarray) -> Tuple[int, ...]:
+    """
+    This function calculates the bounding box of the input 3D mask array.
+
+    Notes
+    -----
+    The maximum values are inclusive.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        The input 3D mask array.
+
+    Returns
+    -------
+    xmin, xmax, ymin, ymax, zmin, zmax : Tuple[int, ...]
+        The bounding box of the input 3D mask array.
+    """
     x = np.any(img, axis=(1, 2))
     y = np.any(img, axis=(0, 2))
     z = np.any(img, axis=(0, 1))
@@ -126,6 +238,23 @@ def bbox2_3D(img):
 
 
 def bbox2_2D(img):
+    """
+    This function calculates the bounding box of the input 2D mask array.
+
+    Notes
+    -----
+    The maximum values are inclusive.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        The input 2D mask array.
+
+    Returns
+    -------
+    xmin, xmax, ymin, ymax : Tuple[int, ...]
+        The bounding box of the input 2D mask array.
+    """
     x = np.any(img, axis=1)
     y = np.any(img, axis=0)
 
@@ -136,6 +265,20 @@ def bbox2_2D(img):
 
 
 def get_liver_segments(liver_case: np.ndarray) -> np.ndarray:
+    """
+    This function segments the liver into 3 segments based on the bounding box of the input 3D mask array. The segments
+    are as follows: 1 for the upper left, 2 for the upper right, and 3 for the lower left.
+
+    Parameters
+    ----------
+    liver_case : np.ndarray
+        The input 3D liver mask array.
+
+    Returns
+    -------
+    np.ndarray
+        The segmented liver mask array.
+    """
     xmin, xmax, ymin, ymax, _, _ = bbox2_3D(liver_case)
     res = np.zeros_like(liver_case)
     res[(xmin + xmax) // 2:xmax, (ymin + ymax) // 2:ymax, :] = 1
@@ -146,6 +289,20 @@ def get_liver_segments(liver_case: np.ndarray) -> np.ndarray:
 
 
 def get_center_of_mass(img: np.ndarray) -> Tuple[int, int, int]:
+    """
+    Returns the center of mass of the input 3D mask array. The center of mass is calculated as the center of the mask's
+    bounding box.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        The input 3D mask array.
+
+    Returns
+    -------
+    Tuple[int, int, int]
+        The center of mass of the input 3D mask array.
+    """
     xmin, xmax, ymin, ymax, zmin, zmax = bbox2_3D(img)
     return (xmin + xmax) // 2, (ymin + ymax) // 2, (zmin + zmax) // 2
 
@@ -153,6 +310,27 @@ def get_center_of_mass(img: np.ndarray) -> Tuple[int, int, int]:
 def approximate_sphere(relevant_points_in_real_space: np.ndarray, relevant_points_in_voxel_space: np.ndarray,
                        center_of_mass_in_voxel_space: Tuple[int, int, int], approximate_radius_in_real_space: float,
                        affine_matrix: np.ndarray):
+    """
+    This function approximates a sphere around the center of mass of the input points.
+
+    Parameters
+    ----------
+    relevant_points_in_real_space : np.ndarray
+        The relevant points in real space. It should be a 2D array with shape (n, 3).
+    relevant_points_in_voxel_space : np.ndarray
+        The relevant points in voxel space. It should be a 2D array with shape (n, 3).
+    center_of_mass_in_voxel_space : Tuple[int, int, int]
+        The center of mass of the input points in voxel space.
+    approximate_radius_in_real_space : float
+        The approximate radius of the sphere in real space.
+    affine_matrix : np.ndarray
+        The affine matrix that maps the voxel space to the real space.
+
+    Returns
+    -------
+    np.ndarray
+        The approximated sphere mask array.
+    """
     center_of_mass_in_real_space = affines.apply_affine(affine_matrix, center_of_mass_in_voxel_space)
     final_points_in_voxel_space = relevant_points_in_voxel_space[
         ((relevant_points_in_real_space - center_of_mass_in_real_space) ** 2).sum(
@@ -166,7 +344,32 @@ def get_minimum_distance_between_CCs(mask: np.ndarray, voxel_to_real_space_trans
                                      max_points_per_CC: Optional[int] = None, seed: Optional[int] = None,
                                      connectivity: Optional[int] = None) -> float:
     """
-    Get the minimum distance between every 2 connected components in a binary image
+    Get the minimum distance between every 2 connected components in a binary image. The distance is calculated as the
+    minimum distance between every 2 connected components' points. If the number of points in a connected component is
+    larger than `max_points_per_CC`, a random subset of `max_points_per_CC` points will be considered. If the affine
+    matrix `voxel_to_real_space_trans` is given, the points will be transformed to the real space. The distance is
+    calculated as the Euclidean distance between the points.
+
+    Notes
+    -----
+    If the input binary image contains only one connected component, the function will return infinity.
+
+    Parameters
+    ----------
+    mask : np.ndarray
+        The input binary image.
+    voxel_to_real_space_trans : np.ndarray, optional
+        The affine matrix that maps the voxel space to the real space. By default it's None.
+    max_points_per_CC : int, optional
+    seed : int, optional
+        The seed to use for the random number generator. By default it's None.
+    connectivity : int, optional
+        The connectivity to consider. By default it's None.
+
+    Returns
+    -------
+    float
+        The minimum distance between every 2 connected components in the input binary image.
     """
 
     rand = np.random.RandomState(seed)
@@ -199,16 +402,24 @@ def get_minimum_distance_between_CCs(mask: np.ndarray, voxel_to_real_space_trans
     return np.inf
 
 
-def get_tumors_intersections(gt: np.ndarray, pred: np.ndarray, unique_intersections_only: bool = False) -> Dict[
-    int, List[int]]:
+def get_tumors_intersections(gt: np.ndarray, pred: np.ndarray,
+                             unique_intersections_only: bool = False) -> Dict[int, List[int]]:
     """
-    Get intersections of tumors between GT and PRED
+    Get intersections of tumors between GT and PRED labeled masks.
 
-    :param gt: GT tumors case
-    :param pred: PRED tumors case
-    :param unique_intersections_only: If considering only unique intersections
+    Parameters
+    ----------
+    gt : np.ndarray
+        Labeled GT tumors case.
+    pred : np.ndarray
+        Labeled PRED tumors case.
+    unique_intersections_only : bool, False by default
+        If considering only unique intersections.
 
-    :return: a dict containing for each relevant GT tumor (key) a list with the relevant intersections (value)
+    Returns
+    -------
+    Dict[int, List[int]]
+        A dict containing for each relevant GT tumor (key) a list with the relevant intersections (value).
     """
 
     # extract intersection pairs of tumors
@@ -304,6 +515,11 @@ def get_CCs_of_longitudinal_tumors_intersection(tumors_masks: List[np.ndarray]):
     CCs : list of CCs
         List of CCs. Each CC is a tuple of `n` list of ints, where `n` is the size of the given `tumors_mask` list,
         indicating the tumors in the corresponding CC, respectively.
+
+    Raises
+    ------
+    AssertionError
+        If the input tumors masks list is empty or contains only one element.
     """
 
     assert len(tumors_masks) >= 2
@@ -363,10 +579,11 @@ def create_approximated_spheres(labeled_tumors_mask: nibabel.Nifti1Image,
     Returns
     -------
     res : numpy.ndarray
-        An ndarray sape shape as given mask with all the tumors replaced with approximated spheres.
+        An ndarray same shape as given mask with all the tumors (or the desired ones) replaced with approximated
+        spheres.
     """
 
-    tumors = labeled_tumors_mask.get_fdata(dtype=np.float32)
+    tumors = np.round(labeled_tumors_mask.get_fdata(dtype=np.float32))
     pix_dims = labeled_tumors_mask.header.get_zooms()
     voxel_volume = pix_dims[0] * pix_dims[1] * pix_dims[2]
     affine_matrix = labeled_tumors_mask.affine
