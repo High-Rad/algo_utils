@@ -8,32 +8,112 @@ from file_operations import load_nifti_data
 
 
 def is_a_scan(case: np.ndarray) -> bool:
+    """
+    Check if the input is a scan (and not a mask). A scan is considered to be a 3D numpy array with more than 2 unique
+    values.
+
+    Parameters
+    ----------
+    case : np.ndarray
+        The input 3D numpy array.
+
+    Returns
+    -------
+    bool
+        True if the input is a scan, False otherwise.
+    """
     if np.unique(case).size <= 2:
         return False
     return True
 
 
 def is_a_mask(case: np.ndarray) -> bool:
+    """
+    Check if the input is a binary mask (and not a scan). A binary mask is considered to be a 3D numpy array with only
+    2 unique values.
+
+    Parameters
+    ----------
+    case : np.ndarray
+        The input 3D numpy array.
+
+    Returns
+    -------
+    bool
+        True if the input is a binary mask, False otherwise.
+    """
     if np.any((case != 0) & (case != 1)):
         return False
     return True
 
 
-def is_a_labeled_mask(case: np.ndarray, relevant_labels: Collection) -> bool:
+def is_a_labeled_mask(case: np.ndarray, relevant_labels: Collection[int]) -> bool:
+    """
+    Check if the input is a labeled mask (and not a scan). A labeled mask is considered to be a 3D numpy array with
+    integer values that are all contained in the relevant_labels collection.
+
+    Parameters
+    ----------
+    case : np.ndarray
+        The input 3D numpy array.
+    relevant_labels : Collection[int]
+        The collection of relevant labels.
+
+    Returns
+    -------
+    bool
+        True if the input is a labeled mask, False otherwise.
+    """
     if np.all(np.isin(case, relevant_labels)):
         return True
     return False
 
 
-def __get_mean_and_std(scan: str):
+def __get_mean_and_std(scan: str) -> Tuple[float, float]:
+    """
+    Get the mean and standard deviation of the given scan.
+
+    Parameters
+    ----------
+    scan : str
+        The path to the scan.
+
+    Returns
+    -------
+    Tuple[float, float]
+        The mean and standard deviation of the scan. If the scan is for some reason not loadable, the function returns
+        (np.nan, np.nan).
+    """
     try:
         s, _ = load_nifti_data(scan)
-        return s.mean(), s.std()
     except Exception:
         return np.nan, np.nan
+    return s.mean(), s.std()
 
 
-def get_duplicate_scans(scans: List[str], multiprocess: bool = False):
+def get_duplicate_scans(scans: List[str], multiprocess: bool = False) -> List[List[str]]:
+    """
+    Get the list of duplicate scans in the given list of scans. Two scans are considered duplicates if they have the
+    same mean and standard deviation of their intensities. The function returns a list of lists, where each inner list
+    contains the paths of the duplicate scans.
+
+    Notes
+    -----
+    If a scan is for some reason not loadable, it is ignored.
+
+    Parameters
+    ----------
+    scans : List[str]
+        The list of scans. Each scan is a path to a NIfTI file.
+    multiprocess : bool
+        Whether to use multiprocessing to speed up the process. Default is False.
+
+    Returns
+    -------
+    List[List[str]]
+        The list of duplicate scans. Each inner list contains the paths of the duplicate scans. If there are no
+        duplicates, the function returns an empty list.
+    """
     if multiprocess:
         params = np.round(process_map(__get_mean_and_std, scans), 4)
     else:
@@ -68,10 +148,17 @@ def find_joint_z_slices(im1: np.ndarray, im2: np.ndarray) -> Tuple[IndexExpressi
     s1, s2 : IndexExpression3D
         The 3D index expressions (Tuple[slice, slice, slice]) of the joint slices in im1 and im2, respectively. They are
         None if there is no overlap between the images.
+
+    Raises
+    ------
+    AssertionError
+        If the images have different x and y shapes.
     """
 
     # ensure images have the same shape over x and y axes
-    assert np.all(np.asarray(im1.shape[0:2]) == np.asarray(im2.shape[0:2]))
+    assert np.all(np.asarray(im1.shape[0:2]) == np.asarray(im2.shape[0:2])), f'Images have different x and y shapes.' \
+                                                                             f' im1 shape: {im1.shape}, im2 shape' \
+                                                                             f': {im2.shape}.'
 
     # create the 2D window bounding box
     x_ind, y_ind = np.asarray(im1.shape[0:2]) // 2
