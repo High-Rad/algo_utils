@@ -1,22 +1,30 @@
 import json
 import os
 from glob import glob
-from typing import Callable
+from typing import Callable, Tuple, Optional
 
 import jsonschema
 import numpy as np
-from nibabel import load, as_closest_canonical
+from nibabel import load, as_closest_canonical, Nifti1Image
 
 
-def load_nifti_data(nifti_file_name: str):
+def load_nifti_data(nifti_file_name: str) -> Tuple[np.ndarray, Nifti1Image]:
     """
     Loading data from a nifti file.
 
-    :param nifti_file_name: The path to the desired nifti file.
+    Notes
+    -----
+    The data is loaded as a numpy array of type float32. The data is also converted to the closest canonical form.
 
-    :return: A tuple in the following form: (data, file), where:
-        • data is a ndarray containing the loaded data.
-        • file is the file object that was loaded.
+    Parameters
+    ----------
+    nifti_file_name : str
+        The path to the desired nifti file.
+
+    Returns
+    -------
+    Tuple[np.ndarray, Nifti1Image]
+        A tuple containing the loaded data and the file object.
     """
 
     # loading nifti file
@@ -29,7 +37,34 @@ def load_nifti_data(nifti_file_name: str):
     return data, nifti_file
 
 
-def replace_in_file_name(file_name, old_part, new_part, dir_file_name=False, dst_file_exist=True):
+def replace_in_file_name(file_name: str, old_part: str, new_part: str, dir_file_name: bool = False,
+                         dst_file_exist: bool = True) -> str:
+    """
+    Replaces a part of a file name with another part.
+
+    Parameters
+    ----------
+    file_name : str
+        The file name to be modified.
+    old_part : str
+        The part of the file name to be replaced.
+    new_part : str
+        The part to replace the old part.
+    dir_file_name : bool, optional
+        If True, the file name is a directory name. Default is False.
+    dst_file_exist : bool, optional
+        If True, the new file name must exist. Default is True.
+
+    Returns
+    -------
+    str
+        The new file name.
+
+    Raises
+    ------
+    Exception
+        If the old part is not found in the file name. If the new file name does not exist (and dst_file_exist is True).
+    """
     if old_part not in file_name:
         raise Exception(f'The following file/dir doesn\'t contain the part "{old_part}": {file_name}')
     new_file_name = file_name.replace(old_part, new_part)
@@ -39,9 +74,27 @@ def replace_in_file_name(file_name, old_part, new_part, dir_file_name=False, dst
     return new_file_name
 
 
-def symlink_for_inner_files_in_a_dir(src: str, dst: str, map_file_basename: Callable = None,
-                                     filter_file_basename: Callable = None):
-    """makes a symbolic link of files in a directory"""
+def symlink_for_inner_files_in_a_dir(src: str, dst: str, map_file_basename: Optional[Callable[[str], str]] = None,
+                                     filter_file_basename: Optional[Callable[[str], bool]] = None):
+    """
+    Create symlinks for all files in a directory to another directory. The files are symlinked with the same basename.
+
+    Parameters
+    ----------
+    src : str
+        The source directory.
+    dst : str
+        The destination directory.
+    map_file_basename : Optional[Callable[[str], str]], optional
+        A function to map the file basename. Default is None.
+    filter_file_basename : Optional[Callable[[str], bool]], optional
+        A function to filter the file basename. Default is None.
+
+    Raises
+    ------
+    Exception
+        If the source is not a directory.
+    """
     if not os.path.isdir(src):
         raise Exception("symlink_for_inner_files works only for directories")
     if src.endswith('/'):
