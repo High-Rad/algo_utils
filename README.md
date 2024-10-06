@@ -24,7 +24,7 @@ All the functions can be imported either through the relevant module or straight
 This package can be installed via pip:
 
 ```bash
-pip install algo-utils
+pip install algo-utils-high-rad
 ```
 
 ### Usage
