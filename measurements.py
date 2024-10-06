@@ -1,3 +1,7 @@
+"""
+Algorithm Utilities: This module contains various functions for measurements and metrics.
+"""
+
 from typing import Optional, Tuple
 
 import numpy as np

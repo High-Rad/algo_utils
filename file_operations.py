@@ -1,3 +1,7 @@
+"""
+Algorithm Utilities: This module contains various functions for file operations.
+"""
+
 import json
 import os
 from glob import glob

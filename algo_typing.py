@@ -1,3 +1,7 @@
+"""
+Algorithm Utilities: This module contains various type hints for algorithm development and data analysis.
+"""
+
 from typing import Tuple, List
 
 __all__ = ['CC', 'IndexExpression3D', 'VoxelSpacing']

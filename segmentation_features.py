@@ -1,3 +1,7 @@
+"""
+Algorithm Utilities: This module contains various functions for segmentation features extraction.
+"""
+
 from typing import Tuple, Optional, Dict, List, Union
 
 from skimage.measure import centroid

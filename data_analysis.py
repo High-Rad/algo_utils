@@ -1,3 +1,7 @@
+"""
+Algorithm Utilities: This module contains various functions for data analysis.
+"""
+
 import os
 from time import gmtime, time
 from typing import Optional, Dict, Tuple, Callable, List

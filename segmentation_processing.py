@@ -1,3 +1,7 @@
+"""
+Algorithm Utilities: This module contains various functions for image processing.
+"""
+
 from typing import Union
 
 import numpy as np
