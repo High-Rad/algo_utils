@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='algo-utils-high-rad',
+    name='algo_utils_highrad',
     version='1.0.0',
     description='A collection of utility functions for algorithm development and data analysis',
     long_description=open('README.md').read(),
