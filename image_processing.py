@@ -7,6 +7,9 @@ from .algo_typing import IndexExpression3D
 from .file_operations import load_nifti_data
 
 
+__all__ = ['is_a_scan', 'is_a_mask', 'is_a_labeled_mask', 'get_duplicate_scans', 'find_joint_z_slices']
+
+
 def is_a_scan(case: np.ndarray) -> bool:
     """
     Check if the input is a scan (and not a mask). A scan is considered to be a 3D numpy array with more than 2 unique

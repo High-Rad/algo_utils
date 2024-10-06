@@ -7,6 +7,10 @@ import pandas as pd
 from xlsxwriter.utility import xl_col_to_name
 
 
+__all__ = ['write_to_excel', 'calculate_runtime', 'print_full_df', 'scans_sort_key', 'pairs_sort_key',
+           'sort_dataframe_by_key']
+
+
 def write_to_excel(df: pd.DataFrame, writer: pd.ExcelWriter, columns_order: List[str], column_name_as_index: str,
                    sheet_name: str = 'Sheet1',
                    f1_scores: Optional[Dict[str, Tuple[str, str]]] = None):
