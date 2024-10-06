@@ -1,4 +1,4 @@
-# algo_utils_highrad
+# algo_utils_hr
 
 This package is a collection of various functions for algorithm development and data analysis.
 It is primarily written in Python and uses several libraries such as numpy, scipy, and skimage for image processing and data manipulation.
@@ -15,7 +15,7 @@ The project is organized into several modules, each containing functions related
 - `segmentation_features`: This module contains functions for extracting features from segmented data.
 - `segmentation_processing`: This module contains functions for processing segmented data.
 
-All the functions can be imported either through the relevant module or straight from the package name `algo_utils_highrad`.
+All the functions can be imported either through the relevant module or straight from the package name `algo_utils_hr`.
 
 ## Getting Started
 
@@ -24,7 +24,7 @@ All the functions can be imported either through the relevant module or straight
 This package can be installed via pip:
 
 ```bash
-pip install algo_utils_highrad
+pip install algo_utils_hr
 ```
 
 ### Usage
@@ -32,16 +32,16 @@ pip install algo_utils_highrad
 Import the required modules and use the functions as per your requirements. For example:
 
 ```python
-from algo_utils_highrad import segmentation_processing
+from algo_utils_hr import segmentation_processing
 
 # Use the functions
 segmentation_processing.get_connected_components(your_data)
 ```
 
-Or you can import functions directly from `algo_utils_highrad`:
+Or you can import functions directly from `algo_utils_hr`:
 
 ```python
-from algo_utils_highrad import get_connected_components
+from algo_utils_hr import get_connected_components
 
 # Use the function
 get_connected_components(your_data)

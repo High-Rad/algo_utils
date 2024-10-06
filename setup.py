@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='algo_utils_highrad',
+    name='algo_utils_hr',
     version='1.0.0',
     description='A collection of utility functions for algorithm development and data analysis',
     long_description=open('README.md').read(),
@@ -15,7 +15,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.10',
     install_requires=[
         "jsonschema~=4.21.1",
         "nibabel~=5.2.1",
