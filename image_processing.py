@@ -3,8 +3,8 @@ from typing import Collection, List, Tuple
 import numpy as np
 from tqdm.contrib.concurrent import process_map
 
-from algo_typing import IndexExpression3D
-from file_operations import load_nifti_data
+from .algo_typing import IndexExpression3D
+from .file_operations import load_nifti_data
 
 
 def is_a_scan(case: np.ndarray) -> bool:

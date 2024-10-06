@@ -6,7 +6,7 @@ from scipy.ndimage import binary_erosion, distance_transform_edt, binary_fill_ho
 from skimage.measure import label
 from skimage.morphology import disk, remove_small_objects
 
-from segmentation_features import distance_transform_edt_for_certain_label
+from .segmentation_features import distance_transform_edt_for_certain_label
 
 
 def get_connected_components(Map, connectivity=None, min_cc_size: int = 11):

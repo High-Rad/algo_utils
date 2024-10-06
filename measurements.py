@@ -5,8 +5,8 @@ from medpy.metric import hd, assd
 from scipy.ndimage import _ni_support, generate_binary_structure, binary_erosion, distance_transform_edt
 from skimage.measure import label
 
-from segmentation_features import crop_to_relevant_joint_bbox, get_tumors_intersections
-from algo_typing import VoxelSpacing
+from .segmentation_features import crop_to_relevant_joint_bbox, get_tumors_intersections
+from .algo_typing import VoxelSpacing
 
 
 def _surface_distances(result: np.ndarray, reference: np.ndarray,

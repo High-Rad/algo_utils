@@ -8,7 +8,7 @@ from nibabel import affines
 from scipy.ndimage import distance_transform_edt
 from skimage.measure import regionprops, label
 
-from algo_typing import CC, IndexExpression3D, VoxelSpacing
+from .algo_typing import CC, IndexExpression3D, VoxelSpacing
 
 
 def crop_to_relevant_joint_bbox(result: np.ndarray, reference: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
