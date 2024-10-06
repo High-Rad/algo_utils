@@ -8,7 +8,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Shalom Rochman',
     author_email='shalom.rochman@high-rad.com',
-    url='git@github.com:High-Rad/algo_utils.git',
+    url='https://github.com/High-Rad/algo_utils.git',
     packages=find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
