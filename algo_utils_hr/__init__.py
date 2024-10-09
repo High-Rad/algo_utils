@@ -6,6 +6,7 @@ from .algo_typing import *
 from .data_analysis import *
 from .file_operations import *
 from .image_processing import *
+from .matching_graphs import *
 from .measurements import *
 from .segmentation_features import *
 from .segmentation_processing import *
