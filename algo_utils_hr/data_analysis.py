@@ -3,6 +3,7 @@ Algorithm Utilities: This module contains various functions for data analysis.
 """
 
 import os
+from datetime import datetime
 from time import gmtime, time
 from typing import Optional, Dict, Tuple, Callable, List
 
@@ -12,7 +13,7 @@ from xlsxwriter.utility import xl_col_to_name
 
 
 __all__ = ['write_to_excel', 'calculate_runtime', 'print_full_df', 'scans_sort_key', 'pairs_sort_key',
-           'sort_dataframe_by_key']
+           'sort_dataframe_by_key', 'CaseName', 'PairName']
 
 
 def write_to_excel(df: pd.DataFrame, writer: pd.ExcelWriter, columns_order: List[str], column_name_as_index: str,
@@ -288,3 +289,116 @@ def sort_dataframe_by_key(dataframe: pd.DataFrame, column: str, key: Callable) -
     """
     sort_ixs = sorted(np.arange(len(dataframe)), key=lambda i: key(dataframe.iloc[i][column]))
     return pd.DataFrame(columns=list(dataframe), data=dataframe.iloc[sort_ixs].values)
+
+
+class CaseName:
+    """
+    Represents a case name with extracted patient name and date information.
+
+    Parameters
+    ----------
+    case_name : str
+        The input string representing the case name.
+
+    Attributes
+    ----------
+    case_name : str
+        The original input case name.
+    patient_name : str
+        The extracted patient name from the case name.
+    date : datetime.date
+        The extracted date associated with the case name.
+
+    Notes
+    -----
+    This class parses the input `case_name` to extract the patient name and date.
+    The `case_name` should follow a specific format: '<patien_name>_<date>'.
+    It is assumed that the date part of the `case_name` follows the format: 'DD_MM_YYYY',
+    which is then converted into a `datetime.date` object for easy handling, and that the patient name
+    doesn't include numbers.
+
+    Examples
+    --------
+    >>> case_name = "A_Ya_25_07_2023"
+    >>> case = CaseName(case_name)
+    >>> case.patient_name
+    'A_Ya'
+    >>> case.date
+    datetime.date(2023, 7, 25)
+    """
+
+    def __init__(self, case_name):
+        self.case_name = case_name
+        self.patient_name = '_'.join(c for c in case_name.split('_') if not c.isdigit())
+        self.date = datetime.strptime('_'.join(c for c in case_name.split('_') if c.isdigit()), '%d_%m_%Y').date()
+
+
+class PairName:
+    """
+    Represents a pair of case names with associated information.
+
+    Parameters
+    ----------
+    pair_name : str
+        The input string representing the pair name.
+
+    Attributes
+    ----------
+    pair_name : str
+        The original input pair name.
+    patient_name : str
+        The common patient name extracted from the baseline and follow-up case names.
+    bl_case_name : str
+        The baseline case name extracted from the pair name.
+    bl_date : datetime.date
+        The date associated with the baseline case name.
+    fu_case_name : str
+        The follow-up case name extracted from the pair name.
+    fu_date : datetime.date
+        The date associated with the follow-up case name.
+
+    Raises
+    ------
+    AssertionError
+        If the extracted patient names from the baseline and follow-up
+        case names do not match.
+
+    Notes
+    -----
+    This class parses the input `pair_name` to extract relevant information
+    such as patient name, baseline case name, baseline date, follow-up case
+    name, and follow-up date. The `pair_name` should follow a specific format:
+    'BL_<case_name>_FU_<case_name>'. It is assumed that the `CaseName` class
+    has been defined elsewhere to handle case name parsing.
+
+    Examples
+    --------
+    >>> pair_name = "BL_A_Ay_25_07_2023_FU_A_Ay_15_09_2023"
+    >>> pair = PairName(pair_name)
+    >>> pair.patient_name
+    'A_Ay'
+    >>> pair.bl_case_name
+    'A_Ay_25_07_2023'
+    >>> pair.bl_date
+    datetime.date(2023, 7, 25)
+    >>> pair.fu_case_name
+    'A_Ay_15_09_2023'
+    >>> pair.fu_date
+    datetime.date(2023, 9, 15)
+    """
+
+    def __init__(self, pair_name):
+        self.pair_name = pair_name
+
+        bl_case_name = CaseName(pair_name.replace('BL_', '').split('_FU_')[0])
+        fu_case_name = CaseName(pair_name.split('_FU_')[1])
+
+        assert bl_case_name.patient_name == fu_case_name.patient_name
+
+        self.patient_name = bl_case_name.patient_name
+
+        self.bl_case_name = bl_case_name.case_name
+        self.bl_date = bl_case_name.date
+
+        self.fu_case_name = fu_case_name.case_name
+        self.fu_date = fu_case_name.date
