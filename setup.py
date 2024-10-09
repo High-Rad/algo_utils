@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='algo_utils_hr',
-    version='1.0.0',
+    version='1.1.0',
     description='A collection of utility functions for algorithm development and data analysis',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
