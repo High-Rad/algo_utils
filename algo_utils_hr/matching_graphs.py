@@ -14,6 +14,9 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 
+__all__ = ['get_itk_colors', 'draw_matching_graph', 'save_matching_graph', 'load_matching_graph']
+
+
 def get_itk_colors(src: str = f'{os.path.dirname(__file__)}/label_descriptions.txt') -> defaultdict:
     """
     Get the colors from the ITK label descriptions file.
