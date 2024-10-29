@@ -10,6 +10,7 @@ setup(
     author_email='shalom.rochman@high-rad.com',
     url='https://github.com/High-Rad/algo_utils.git',
     packages=find_packages(),
+    include_package_data=True,
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
