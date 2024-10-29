@@ -174,7 +174,13 @@ def _draw_matching_graph(bl_tumors: List[str], fu_tumors: List[str], n_bl_nodes:
     # draw the graph
     x = 12.4
     y = 18.8
-    fig = plt.figure(figsize=(x, y))
+    try:
+        fig = plt.figure(figsize=(x, y))
+    except AttributeError:
+        import matplotlib
+        matplotlib.use('tkagg')
+        fig = plt.figure(figsize=(x, y))
+
     plt.title(f'{case_name}\n\nMatching Graph', fontsize=25)
 
     cf = plt.gcf()
