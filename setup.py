@@ -27,5 +27,6 @@ setup(
         "tqdm~=4.65.0",
         "xlsxwriter~=3.1.9",
         "medpy~=0.5.2",
+        "matplotlib~=3.9.2"
     ]
 )
