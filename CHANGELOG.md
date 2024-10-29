@@ -4,9 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.1] - 2024-10-29
 ### Fixed
-- Fixing README.md file to contain and explanation of new `matching_graphs.py` module.
+- Fixing README.md file to contain an explanation of new `matching_graphs.py` module.
+- Fixing the installation dependencies in the `setup.py` file to include the `matplotlib` package.
+- Fixing bug in the `matching_graphs.py` module that caused the `get_itk_colors` to crash when called with the default
+argument.
 
 ## [1.1.0] - 2024-10-09
 ### Added
